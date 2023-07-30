@@ -3,6 +3,7 @@ import functools
 import os
 import pathlib
 import sys
+import importlib
 
 os.environ["MUJOCO_GL"] = "osmesa"
 
@@ -20,6 +21,7 @@ from parallel import Parallel, Damy
 import torch
 from torch import nn
 from torch import distributions as torchd
+from bullet_sim.gpt_tasks.task_dict import task_dict
 
 
 to_np = lambda x: x.detach().cpu().numpy()
@@ -226,7 +228,27 @@ def make_env(config, mode):
         env = minecraft.make_env(task, size=config.size, break_speed=config.break_speed)
         env = wrappers.OneHotAction(env)
     else:
-        raise NotImplementedError(suite)
+        # TODO: add bullet env here
+        task_config = config.task_config
+        from gpt_4.gen_reward import get_task_name_from_config
+        task_name = get_task_name_from_config(task_config).replace(" ", "_")
+        sub_task_name = config.sub_task_name
+        env_config = {
+            "gui": False,
+            "mobile": False,
+            "config_path": task_config,
+            "task_name": sub_task_name,
+            "use_suction": True,
+            "rotation_mode": 'delta-axis-angle',
+            "translation_mode": 'delta-translation',
+            "restore_state_file": None,
+            "dict_obs": True
+        }
+
+        module = importlib.import_module("bullet_sim.gpt_tasks.{}.{}".format(task_name, sub_task_name))
+        env_class = getattr(module, sub_task_name)
+        env = env_class(**env_config)
+
     env = wrappers.TimeLimit(env, config.time_limit)
     env = wrappers.SelectAction(env, key="action")
     env = wrappers.UUID(env)
@@ -236,6 +258,8 @@ def make_env(config, mode):
 
 def main(config):
     logdir = pathlib.Path(config.logdir).expanduser()
+    os.system("cp dreamerv3-torch/configs.yaml {}/".format(logdir))
+
     config.traindir = config.traindir or logdir / "train_eps"
     config.evaldir = config.evaldir or logdir / "eval_eps"
     config.steps //= config.action_repeat
@@ -336,6 +360,7 @@ def main(config):
             logger,
             is_eval=True,
             episodes=config.eval_episode_num,
+            save_video=True,
         )
         if config.video_pred_log:
             video_pred = agent._wm.video_pred(next(eval_dataset))
@@ -359,7 +384,9 @@ def main(config):
             pass
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
+    np.random.seed(0)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--configs", nargs="+")
     args, remaining = parser.parse_known_args()

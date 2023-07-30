@@ -23,7 +23,7 @@ defaults:
   size: [64, 64]
   envs: 1
   action_repeat: 2
-  time_limit: 100 
+  time_limit: 1000
   grayscale: False
   prefill: 2500
   eval_noise: 0.0
@@ -123,18 +123,7 @@ defaults:
 dmc_proprio:
   steps: 5e5
   action_repeat: 2
-  envs: 1
-  train_ratio: 512
-  video_pred_log: false
-  encoder: {mlp_keys: '.*', cnn_keys: '$^'}
-  decoder: {mlp_keys: '.*', cnn_keys: '$^'}
-
-bullet:
-  task_config: "gpt_4/data/parsed_configs/2023-07-07-17-07-48/_1_Open_the_Oven_Door_and_Put_the_Tray_Inside**.yaml"
-  sub_task_name: "move_to_the_oven"
-  steps: 5e5
-  action_repeat: 1
-  envs: 1
+  envs: 4
   train_ratio: 512
   video_pred_log: false
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}

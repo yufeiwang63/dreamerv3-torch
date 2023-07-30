@@ -83,6 +83,7 @@ class RewardObs(gym.Wrapper):
         super().__init__(env)
 
     def observation_space(self):
+        # import pdb; pdb.set_trace()
         spaces = self.env.observation_space.spaces
         if "reward" not in spaces:
             spaces["reward"] = gym.spaces.Box(
@@ -97,12 +98,12 @@ class RewardObs(gym.Wrapper):
         return obs, reward, done, info
 
     def reset(self):
+        # import pdb; pdb.set_trace()
         obs = self.env.reset()
         if "reward" not in obs:
             obs["reward"] = 0.0
         return obs
-
-
+    
 class SelectAction(gym.Wrapper):
     def __init__(self, env, key):
         super().__init__(env)
@@ -122,3 +123,5 @@ class UUID(gym.Wrapper):
         timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
         self.id = f"{timestamp}-{str(uuid.uuid4().hex)}"
         return self.env.reset()
+
+# class WrapObs(gym.Wrapper):

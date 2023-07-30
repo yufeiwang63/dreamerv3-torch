@@ -133,6 +133,7 @@ def simulate(
     steps=0,
     episodes=0,
     state=None,
+    save_video=False,
 ):
     # initialize or unpack simulation state
     if state is None:

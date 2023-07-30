@@ -34,7 +34,7 @@ class WorldModel(nn.Module):
         self._step = step
         self._use_amp = True if config.precision == 16 else False
         self._config = config
-        shapes = {k: tuple(v.shape) for k, v in obs_space.spaces.items()}
+        shapes = {k: tuple(v.shape) for k, v in obs_space().spaces.items()}
         self.encoder = networks.MultiEncoder(shapes, **config.encoder)
         self.embed_size = self.encoder.outdim
         self.dynamics = networks.RSSM(
